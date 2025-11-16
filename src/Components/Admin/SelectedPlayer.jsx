@@ -1,6 +1,6 @@
 import React from 'react'
 
-const SelectedPlayer = ({ selectedPlayer }) => {
+const SelectedPlayer = ({ selectedPlayer, latestBidder }) => {
   return (
     <div className="w-1/2 p-6 overflow-y-auto bg-white">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Player Details</h2>
@@ -25,7 +25,7 @@ const SelectedPlayer = ({ selectedPlayer }) => {
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-600 mb-1">Best Bid Price</p>
               <p className="text-2xl font-bold text-gray-800">
-                $0
+                {latestBidder?.bidder_name || selectedPlayer?.bids?.bidder_name || 'Unknown'} || ${latestBidder?.amount || selectedPlayer?.bids?.amount || 0}
               </p>
             </div>
           </div>

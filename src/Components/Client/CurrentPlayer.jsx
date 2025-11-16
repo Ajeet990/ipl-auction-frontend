@@ -10,6 +10,7 @@ export const CurrentPlayer = () => {
   const [bidName, setBidName] = useState('');
   const [bidAmount, setBidAmount] = useState('');
   const [isConnected, setIsConnected] = useState(false);
+  const [latestBidder, setLatestBidder] = useState(null);
 
   useEffect(() => {
     console.log('Setting up Echo connection...');
@@ -42,6 +43,15 @@ export const CurrentPlayer = () => {
       // Clear bid form when new player is selected
       setBidName('');
       setBidAmount('');
+      setLatestBidder(event?.bids || null);
+    });
+
+    // Listen for bid placed events
+    channel.listen('.bid.placed', (event) => {
+      console.log('💰 Bid placed via Reverb33:', event);
+      // if (currentPlayer && event.player_id === currentPlayer.id) {
+        setLatestBidder(event.bid);
+      // }
     });
 
     // Cleanup on unmount
@@ -68,7 +78,15 @@ export const CurrentPlayer = () => {
       player_id: currentPlayer.id
     })
     .then(response => {
-      alert("Bid submitted successfully!");
+      // alert("Bid submitted successfully!");
+      if (!response.data.success) {
+        alert(response.data.message || "Bid amount must be higher than the current highest bid.");
+        return;
+      }
+      setLatestBidder({
+        bidder_name: bidName,
+        amount: parseFloat(bidAmount)
+      });
       setBidName('');
       setBidAmount('');
     })
@@ -124,6 +142,12 @@ export const CurrentPlayer = () => {
 
             <p className="text-gray-700">
               <span className="font-semibold">Base Price:</span> ${currentPlayer.base_price || 0}
+            </p>
+
+            <p className="text-gray-700">
+              <span className="font-semibold">Best Bid Price:</span>
+              {latestBidder?.bidder_name || 'Unknown'} ||
+              ${latestBidder?.amount || 0}
             </p>
           </div>
         ) : (

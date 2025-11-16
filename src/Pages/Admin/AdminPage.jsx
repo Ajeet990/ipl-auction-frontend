@@ -11,6 +11,7 @@ const AdminPage = () => {
   const [players, setPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [latestBidder, setLatestBidder] = useState(null);
 
   // Extract fetch logic into a separate function
   const fetchPlayers = () => {
@@ -27,12 +28,33 @@ const AdminPage = () => {
   // Fetch on component mount
   useEffect(() => {
     fetchPlayers();
+
+    // Subscribe to the auction channel
+    const channel = echo.channel('auction');
+
+    channel.listen('.bid.placed', (event) => {
+      // console.log('Bid placed via Reverb:', event);
+      // console.log('Bid placed via Reverb11:', event.bid.amount);
+      // if (selectedPlayer && event.player_id === selectedPlayer.id) {
+        setLatestBidder(event.bid);
+      // }
+    });
+
+    // echo.channel('admin-players').listen('.player.added', (event) => {
+    //   console.log('New player added via Reverb:', event);
+    //   fetchPlayers(); // Refresh the list when a new player is added
+    // });
+    return () => {
+      console.log('Component unmounting, leaving admin-players channel');
+      echo.leaveChannel('admin-players');
+    };
   }, []);
 
   const markCurrentPlayer = (playerId) => {
     axios.post(`${API_BASE_URL}/player/mark-current`, { player_id: playerId })
       .then(response => {
-        console.log('Marked current player:', response.data);
+        console.log('Marked current player:q', response.data);
+        // setSelectedPlayer(response.data.data);
       })
       .catch(error => {
         console.error('Error marking current player:', error);
@@ -72,7 +94,10 @@ const AdminPage = () => {
           selectedPlayer={selectedPlayer}
           onSelectPlayer={handleSelectPlayer}
         />
-        <SelectedPlayer selectedPlayer={selectedPlayer} />
+        <SelectedPlayer 
+          selectedPlayer={selectedPlayer} 
+          latestBidder={latestBidder} 
+        />
       </div>
 
       <AddPlayer
